@@ -22,7 +22,7 @@ int i = 0;
 void loop()
 {
   
-   digitalWrite(31, HIGH);
+   digitalWrite(ledPin, HIGH);
    sendData2(MESSAGE_PREFIX+"Marcos "+String((++i)), 0, 30);
    Serial.println(MESSAGE_PREFIX+"Marcos "+String((i)));
    //sendData2(LED_PREFIX+"1", 1, 8000);
