@@ -6,25 +6,18 @@
 #define dataSize 30
 #define fixMemDelay 3
 
-int whatToDo = -1;
 byte index = 0;
 byte lastIndex = 0;
 char inChar=-1;
 char inData[dataSize];
 char repo[90];
+char message[90];
 
-
-String MESSAGE_PREFIX = "@M";
-String LED_PREFIX = "@L";
-
-enum DoThings { SEND_HELLO, REPPLY_ME };
-int charToEnum(char dataReceived[]){
-  if(strlen(dataReceived) > 10){
-    return SEND_HELLO;
-  } else {
-    return REPPLY_ME;
-  }
-}
+int whatToDo = -1;
+const int ON13 = 1;
+const int OFF13 = 2;
+const int GET_STATUS = 3;
+const int RF_MESSAGE = 4;
 
 void setup(){
   Serial.begin(9600); //bps
@@ -39,17 +32,23 @@ void loop(){
   waitForSerialInput();
   receiveData();
   
-  whatToDo = charToEnum(inData);
-  
   switch(whatToDo){
-    case REPPLY_ME:
-      appendAndRepply();
+    case ON13:
+      digitalWrite(ledPin, HIGH);
+      Serial.println(message);
       break;
-    case SEND_HELLO:
+    case OFF13:
+      digitalWrite(ledPin, LOW);
+      Serial.println(message);
+      break;
+    case GET_STATUS:
+    case RF_MESSAGE:
     default:
       delay(fixMemDelay); //do nothing
       Serial.println(inData);
+      Serial.println(whatToDo);
   }
+  delay(500);
   
   //clean and finish
   cleanSerialMemory();
@@ -59,13 +58,23 @@ void waitForSerialInput(){
   delay(fixMemDelay);
   index = 0;
   while (Serial.available() == 0) ;
+  delay(fixMemDelay);
 }
 
 void receiveData(){
+  int messageIndex = 0;
   while(Serial.available() > 0){
     if(index < (dataSize - 1)){
       inChar = Serial.read();
       inData[index] = inChar;
+      if(index == 4){
+        char _aux[2];
+        _aux[0] = inChar;
+        whatToDo = atoi(_aux);
+      } else if(index >= 10 && inChar != ';'){
+        message[messageIndex] = inChar;
+        messageIndex++;
+      }
       index++;
       delay(fixMemDelay);
     }
@@ -74,6 +83,10 @@ void receiveData(){
   lastIndex = index;
   index = 0;
   delay(fixMemDelay);
+}
+
+int getAction(){
+  
 }
 
 void appendAndRepply(){
@@ -88,6 +101,7 @@ void cleanSerialMemory(){
   Serial.flush();
   delay(fixMemDelay);
   memset(inData, 0, strlen(inData));
+  memset(message, 0, strlen(message));
   whatToDo = -1;
 }
 

@@ -16,7 +16,8 @@ void loop() {
   waitForSerialInput();
   receiveData();
   delay(fixMemDelay);        // delay in between reads for stability
-  Serial.println(inData);
+  int d = atoi(inData);
+  Serial.println(d);
   delay(fixMemDelay);
   cleanSerialMemory();
 }
